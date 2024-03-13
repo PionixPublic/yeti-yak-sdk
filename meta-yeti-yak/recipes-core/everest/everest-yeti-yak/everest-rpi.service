@@ -1,0 +1,19 @@
+[Unit]
+Description=EVerest
+Requires=mosquitto.service
+Requires=network.target
+After=mosquitto.service
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+User=root
+LimitCORE=infinity
+ExecCondition=grep Model /sys/firmware/devicetree/base/model
+WorkingDirectory=/usr/bin
+ExecStartPre=sleep 5
+ExecStart=/usr/bin/manager --conf /etc/everest/config-yeti-yak-rpi-pwm.yaml
+
+[Install]
+WantedBy=multi-user.target

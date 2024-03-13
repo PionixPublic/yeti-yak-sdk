@@ -1,0 +1,196 @@
+#!/usr/bin/python3
+#
+# SPDX-License-Identifier: Apache-2.0
+# Copyright Pionix GmbH and Contributors to EVerest
+#
+
+#
+# Add, remove, modify the layers to sync, here. The tool doesn't change the bblayers.conf so be sure to update that too
+#
+
+remotes = [
+    {"name": "yocto", "url": "git://git.yoctoproject.org"},
+    {"name": "openembedded", "url": "git://git.openembedded.org"},
+    {"name": "github", "url": "https://github.com"},
+    {"name": "github-ssh", "url": "ssh://git@github.com"},
+]
+
+layers = [
+    {
+        "rev": "fda737ec0cc1d2a5217548a560074a8e4d5ec580",
+        "branch": "kirkstone",
+        "repo": "meta-openembedded",
+        "path": "meta-openembedded",
+        "remote": "openembedded",
+    },
+    {
+        "rev": "b3e316e8486e5462c3c71a9c8248779a5c253385",
+        "branch": "kirkstone",
+        "repo": "poky",
+        "path": "poky",
+        "remote": "yocto",
+    },
+    {
+        "rev": "b187fb9232ca0a6b5f8f90b4715958546fc41d73",
+        "branch": "kirkstone",
+        "repo": "meta-arm",
+        "path": "meta-arm",
+        "remote": "yocto",
+    },
+    {
+        "rev": "9dc6673d41044f1174551120ce63501421dbcd85",
+        "branch": "kirkstone",
+        "repo": "meta-raspberrypi",
+        "path": "meta-raspberrypi",
+        "remote": "yocto",
+    },
+    {
+        "rev": "312ff1c39b1bf5d35c0321e873417eb013cea477",
+        "branch": "kirkstone",
+        "repo": "kraj/meta-clang",
+        "path": "meta-clang",
+        "remote": "github",
+    },
+    {
+        "rev": "31be51481174fcb848508e6d325238568114b5eb",
+        "branch": "release/kirkstone/2024.3.0",
+        "repo": "EVerest/meta-everest",
+        "path": "meta-everest",
+        "remote": "github",
+    },
+]
+
+import os
+import pathlib
+import sys
+import argparse
+import subprocess
+
+
+# ANSI color codes
+RED = "\033[91m"
+YELLOW = "\033[93m"
+RESET = "\033[0m"
+
+
+def print_error(message):
+    print(f"\033[97;41mError:\033[0m {message}")
+
+
+def print_warning(message):
+    print(f"\033[30;43mWarning:\033[0m {message}")
+
+
+def print_msg(message):
+    print(f"\033[97;42mExecute:\033[0m {message}")
+
+
+def format_underline(message):
+    return f"\033[34;4m{message}\033[0m"
+
+
+def get_remote_url(remote_name):
+    for remote in remotes:
+        if remote["name"] == remote_name:
+            return remote["url"]
+    return None
+
+
+def loop_over_layers(do_init, do_sync, sync_method, layers_location):
+    for layer in layers:
+        print()
+        path = layers_location / layer["path"]
+        if os.path.exists(path) and os.listdir(path):
+            if do_init:
+                url = get_remote_url(layer["remote"]) + "/" + layer["repo"]
+                print_warning(
+                    f"Init was requested for repo {format_underline(url)} using existing path {path}"
+                )
+                print_warning(
+                    "Existing folder (layer) will not be altered, run the tool again with --sync to update it. You can delete it (if you don't have changes) and rerun with --init if needed."
+                )
+                continue
+            if not layer["rev"]:
+                command = (
+                    f'git -C {path} {sync_method} && git checkout {layer["branch"]}'
+                )
+            else:
+                command = f'git -C {path}  {sync_method} && git -C {path} checkout {layer["rev"]}'
+        else:
+            if do_sync:
+                print_warning(
+                    f"Sync was requested but the folder {path} doesn't exist, we will do nothing, run init to create it"
+                )
+                continue
+            if not layer["rev"]:
+                command = f'git clone -b {layer["branch"]} --single-branch {get_remote_url(layer["remote"])}/{layer["repo"]} {path}'
+            else:
+                command = f'git clone -b {layer["branch"]} --single-branch {get_remote_url(layer["remote"])}/{layer["repo"]} {path} && git -C {path} checkout {layer["rev"]}'
+        print_msg(command)
+        process = subprocess.Popen(command, shell=True)
+        exit_code = process.wait()
+        if exit_code != 0:
+            print_error(
+                f"The last command returned with error ({exit_code}), exiting ..."
+            )
+            sys.exit(1)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Creates the layer structure and synchronizes it"
+    )
+    parser.add_argument(
+        "--init", action="store_true", help="Initializes the entire Yocto structure"
+    )
+    parser.add_argument(
+        "--sync",
+        action="store_true",
+        help="Synchronizes the layers to the given revision or to the given branch HEAD",
+    )
+    parser.add_argument(
+        "--sync_method", choices=["fetch", "pull"], help="Synchronization method"
+    )
+    parser.add_argument(
+        "--layers_location",
+        default=None,
+        help="Location where the BitBake layers should be stored",
+    )
+
+    # Parse command-line arguments
+    args = parser.parse_args()
+
+    # Validate args
+    if not args.init and not args.sync:
+        print_error("You need to provide an operation, either --init or --sync\n")
+        parser.print_help()
+        sys.exit(1)
+    if args.init and args.sync_method:
+        print_error("Cannot use --init with --sync_method\n")
+        parser.print_help()
+        sys.exit(1)
+    layers_location = (
+        pathlib.Path(__file__).parent.parent.resolve() / "yeti-yak-sdk-source"
+    )
+    if args.layers_location:
+        layers_location = pathlib.Path(layers_location).resolve()
+        if not layers_location.is_dir():
+            print_error(
+                f'Given BitBake layer location "{layers_location}" is not a directory\n'
+            )
+            sys.exit(1)
+
+    # Set the working directory to the script directory
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    os.chdir(script_dir)
+
+    loop_over_layers(
+        args.init,
+        args.sync,
+        "fetch" if not args.sync_method else args.sync_method,
+        layers_location,
+    )
+
+
+if __name__ == "__main__":
+    main()
