@@ -52,8 +52,8 @@ layers = [
         "remote": "github",
     },
     {
-        "rev": "cb17e54f0f278dfaf0ed3746e362e4cc8f63ae89",
-        "branch": "release/kirkstone/2024.9.0-rc2",
+        "rev": "e4eeac9f543d786230a765591aff90b947a8285c",
+        "branch": "release/kirkstone/2024.9.0-rc3",
         "repo": "EVerest/meta-everest",
         "path": "meta-everest",
         "remote": "github",
