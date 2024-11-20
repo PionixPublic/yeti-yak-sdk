@@ -43,6 +43,7 @@ CORE_IMAGE_EXTRA_INSTALL += "\
         nodejs \
         systemd-analyze \
         fbida \
+        everest-core-rust \
 	"
 
 COMPATIBLE_MACHINE = "^rpi$"

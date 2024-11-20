@@ -12,6 +12,10 @@ SRC_URI = "file://config-yeti-yak-rpi-pwm.yaml \
            file://everest-rpi.service \
            file://everest-bootlogo.service \
            file://everest_boot_logo.png \
+           file://config-yeti-yak-rpi-pwm-rust.yaml \
+           file://config-yeti-yak-rpi-iso-rust.yaml \
+           file://config-yeti-yak-pwm-rust.yaml \
+           file://config-yeti-yak-iso-rust.yaml \
            "
 PV = "0.1"
 
@@ -29,8 +33,12 @@ do_install() {
     install -m 0644 ${WORKDIR}/everest_boot_logo.png ${D}${datadir}/everest/everest_boot_logo.png
     install -m 0644 ${WORKDIR}/config-yeti-yak-pwm.yaml ${D}${sysconfdir}/everest/config-yeti-yak-pwm.yaml
     install -m 0644 ${WORKDIR}/config-yeti-yak-iso.yaml ${D}${sysconfdir}/everest/config-yeti-yak-iso.yaml
+    install -m 0644 ${WORKDIR}/config-yeti-yak-pwm-rust.yaml ${D}${sysconfdir}/everest/config-yeti-yak-pwm-rust.yaml
+    install -m 0644 ${WORKDIR}/config-yeti-yak-iso-rust.yaml ${D}${sysconfdir}/everest/config-yeti-yak-iso-rust.yaml
     install -m 0644 ${WORKDIR}/config-yeti-yak-rpi-pwm.yaml ${D}${sysconfdir}/everest/config-yeti-yak-rpi-pwm.yaml
     install -m 0644 ${WORKDIR}/config-yeti-yak-rpi-iso.yaml ${D}${sysconfdir}/everest/config-yeti-yak-rpi-iso.yaml
+    install -m 0644 ${WORKDIR}/config-yeti-yak-rpi-pwm-rust.yaml ${D}${sysconfdir}/everest/config-yeti-yak-rpi-pwm-rust.yaml
+    install -m 0644 ${WORKDIR}/config-yeti-yak-rpi-iso-rust.yaml ${D}${sysconfdir}/everest/config-yeti-yak-rpi-iso-rust.yaml
 }
 
 FILES:${PN} += "${datadir}/everest/* \
