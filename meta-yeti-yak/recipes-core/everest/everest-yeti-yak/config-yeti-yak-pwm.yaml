@@ -4,9 +4,17 @@ active_modules:
   api:
     connections:
       evse_manager:
-      - implementation_id: evse
-        module_id: evse_manager
+        - implementation_id: evse
+          module_id: evse_manager
+      error_history:
+        - module_id: error_history
+          implementation_id: error_history
     module: API
+  error_history:
+    module: ErrorHistory
+    config_implementation:
+      error_history:
+        database_path: /tmp/error_history.db
   auth:
     module: Auth
     config_module:
@@ -38,7 +46,6 @@ active_modules:
       ac_nominal_voltage: 230
       ac_with_soc: false
       charge_mode: AC
-      country_code: DE
       dbg_hlc_auth_after_tstep: false
       ev_receipt_required: false
       evse_id: DE*PNX*E123456*1
@@ -48,7 +55,6 @@ active_modules:
       session_logging: true
       session_logging_path: /tmp/logs
       session_logging_xml: false
-      three_phases: true
       connector_id: 1
     connections:
       bsp:
