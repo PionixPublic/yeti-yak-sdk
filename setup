@@ -123,9 +123,9 @@ def loop_over_layers(do_init, do_sync, sync_method, layers_location):
                 )
                 continue
             if not layer["rev"]:
-                command = f'git clone -b {layer["branch"]} --single-branch {get_remote_url(layer["remote"])}/{layer["repo"]} {path}'
+                command = f'git clone -b {layer["branch"]} {get_remote_url(layer["remote"])}/{layer["repo"]} {path}'
             else:
-                command = f'git clone -b {layer["branch"]} --single-branch {get_remote_url(layer["remote"])}/{layer["repo"]} {path} && git -C {path} checkout {layer["rev"]}'
+                command = f'git clone -b {layer["branch"]} {get_remote_url(layer["remote"])}/{layer["repo"]} {path} && git -C {path} checkout {layer["rev"]}'
         print_msg(command)
         process = subprocess.Popen(command, shell=True)
         exit_code = process.wait()
